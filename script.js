@@ -1,52 +1,81 @@
-// =============================
+function obterDataHojeFormatada() {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const inputData = document.getElementById('data_retirada');
+    if (inputData) {
+        const dataHoje = obterDataHojeFormatada();
+        inputData.value = dataHoje; 
+        inputData.max = dataHoje;   
+    }
+});
+
+
 // Função principal - calcular próxima retirada
-// =============================
+
 function adicionar30Dias(event) {
     event.preventDefault(); // Impede o envio do formulário
 
     const inputData = document.getElementById('data_retirada').value;
     const telefone = document.getElementById('telefone').value;
     const email = document.getElementById('email').value;
+    const dataHoje = obterDataHojeFormatada();
 
-    if (inputData) {
-        const dataInicial = new Date(inputData);
-        const novaData = new Date(dataInicial);
-        novaData.setDate(novaData.getDate() + 31);
-
-        const diaFinal = String(novaData.getDate()).padStart(2, '0');
-        const mesFinal = String(novaData.getMonth() + 1).padStart(2, '0');
-        const anoFinal = novaData.getFullYear();
-
-        const dataFormatada = `${diaFinal}/${mesFinal}/${anoFinal}`;
-
-        // Atualiza o texto do resultado
-        const resultado = document.getElementById('data');
-        resultado.textContent = `Sua próxima retirada será: ${dataFormatada}`;
-
-        // Mostra a seção de resultado
-        const resultadoSection = document.querySelector('.resultado');
-        resultadoSection.classList.remove('hide');
-
-        // Faz a página rolar suavemente até o resultado visível
-        resultadoSection.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        });
-
-        // Envia os dados pelo EmailJS
-        enviarDados(telefone, email, dataFormatada);
-    } else {
+    if (!inputData) {
         alert("Por favor, insira uma data válida.");
+        return;
     }
+
+    // Validação extra caso o usuário digite manualmente uma data futura
+    if (inputData > dataHoje) {
+        alert("A data de retirada não pode ser maior que a data de hoje.");
+        document.getElementById('data_retirada').value = dataHoje;
+        return;
+    }
+
+    // Cria a data usando o fuso horário local (evita erro de 1 dia a menos)
+    const [ano, mes, dia] = inputData.split('-').map(Number);
+    const dataInicial = new Date(ano, mes - 1, dia);
+
+    const novaData = new Date(dataInicial);
+    novaData.setDate(novaData.getDate() + 30);
+
+    const diaFinal = String(novaData.getDate()).padStart(2, '0');
+    const mesFinal = String(novaData.getMonth() + 1).padStart(2, '0');
+    const anoFinal = novaData.getFullYear();
+
+    const dataFormatada = `${diaFinal}/${mesFinal}/${anoFinal}`;
+
+    // Atualiza o texto do resultado
+    const resultado = document.getElementById('data');
+    resultado.textContent = `Sua próxima retirada será: ${dataFormatada}`;
+
+    // Mostra a seção de resultado
+    const resultadoSection = document.querySelector('.resultado');
+    resultadoSection.classList.remove('hide');
+
+    // Faz a página rolar suavemente até o resultado visível
+    resultadoSection.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+    });
+
+    // Envia os dados pelo EmailJS
+    enviarDados(telefone, email, dataFormatada);
 }
 
-// =============================
+
 // Função para enviar e-mail via EmailJS
-// =============================
+
 function enviarDados(telefone, email, data) {
     if (!email) return; // só envia se o usuário tiver digitado um e-mail
 
-    // Substitua pelos seus IDs do EmailJS
+    
     const serviceID = "service_tv3p65w";
     const templateID = "template_jwt2gj8";
 
@@ -66,9 +95,9 @@ function enviarDados(telefone, email, data) {
     });
 }
 
-// =============================
+
 // Função de máscara de telefone
-// =============================
+
 function mascaraTelefone(input) {
     let valor = input.value.replace(/\D/g, ""); // Remove tudo que não for número
 
@@ -90,9 +119,9 @@ function mascaraTelefone(input) {
     }
 }
 
-// =============================
+
 // Sempre volta para o topo ao recarregar
-// =============================
+
 window.onbeforeunload = function () {
     window.scrollTo(0, 0);
 };
